@@ -23,6 +23,7 @@ namespace MultiBuff
     public class mbConfig
     {
         public bool AllowDebuffs = false;
+        public int DefaultMBTime = 9;
         public Dictionary<string, BTPair> BuffSets;
 
         public static mbConfig Read(string path)

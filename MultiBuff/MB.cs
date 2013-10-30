@@ -122,11 +122,11 @@ namespace MultiBuff
             validBuffs.Add(79); //Weapon Imbue: Poison
             #endregion;
 
-            Commands.ChatCommands.Add(new Command("tshock.buff.self", multiBuff, "mb"));
-            Commands.ChatCommands.Add(new Command("tshock.buff.others", giveMultiBuff, "gmb"));
+            Commands.ChatCommands.Add(new Command("tshock.buff.self", multiBuff, "multibuff", "mb"));
+            Commands.ChatCommands.Add(new Command("tshock.buff.others", giveMultiBuff, "gmultibuff", "gmb"));
             Commands.ChatCommands.Add(new Command("mb.buffset.self", buffSet, "bset"));
             Commands.ChatCommands.Add(new Command("mb.buffset.others", giveBuffSet, "gbset"));
-            Commands.ChatCommands.Add(new Command("mb.reload", mbReload, "reloadmb"));
+            Commands.ChatCommands.Add(new Command("mb.admin.reload", mbReload, "reloadmb"));
 
             SetUpConfig();
         }
@@ -162,7 +162,7 @@ namespace MultiBuff
                 {
                     if (id > 0 && validBuffs.Contains(id))
                     {
-                        args.Player.SetBuff(id, Int16.MaxValue);
+                        args.Player.SetBuff(id, 3600 * config.DefaultMBTime);
                         args.Player.SendSuccessMessage("You have buffed yourself with {0}({1})!",
                             TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
                     }
@@ -174,7 +174,7 @@ namespace MultiBuff
                 {
                     if (id > 0)
                     {
-                        args.Player.SetBuff(id, Int16.MaxValue);
+                        args.Player.SetBuff(id, 3600 * config.DefaultMBTime);
                         args.Player.SendSuccessMessage("You have buffed yourself with {0}({1})!",
                             TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
                     }
@@ -227,7 +227,7 @@ namespace MultiBuff
                     {
                         if (id > 0 && validBuffs.Contains(id))
                         {
-                            foundplr[0].SetBuff(id, Int16.MaxValue);
+                            foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
                             args.Player.SendSuccessMessage("You have buffed {0} with {1}({2})!",
                                 foundplr[0].Name, TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
                             foundplr[0].SendSuccessMessage("{0} buffed you with {1}({2})!",
@@ -241,7 +241,7 @@ namespace MultiBuff
                     {
                         if (id > 0)
                         {
-                            foundplr[0].SetBuff(id, Int16.MaxValue);
+                            foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
                             args.Player.SendSuccessMessage("You have buffed {0} with {1}({2})!",
                                 foundplr[0].Name, TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
                             foundplr[0].SendSuccessMessage("{0} buffed you with {1}({2})!",
