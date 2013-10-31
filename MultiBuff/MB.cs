@@ -263,10 +263,10 @@ namespace MultiBuff
                 args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /bset <buffset name>");
                 return;
             }
-            BTPair pair;
-            if (config.BuffSets.TryGetValue(args.Parameters[0], out pair))
+            BTPair pair;                                                                            
+            if (config.BuffSets.TryGetValue(args.Parameters[0], out pair))                          //get the values from the string (dictionary key) from cmd
             {
-                foreach (int buff in pair.Buffs)
+                foreach (int buff in pair.Buffs)                                                    //get each int in the List<int> from the values of the buffset
                 {
                     args.Player.SetBuff(buff, 3600 * pair.Time);
                 }

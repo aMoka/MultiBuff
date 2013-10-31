@@ -15,16 +15,16 @@ namespace MultiBuff
         public int Time;
         public BTPair(List<int> bListVal, int bTimeVal)
         {
-            Buffs = bListVal;
-            Time = bTimeVal;
+            Buffs = bListVal;                               //The list of buffs
+            Time = bTimeVal;                                //The time (in minutes) all buffs in the set lasts
         }
     }
 
     public class mbConfig
     {
-        public bool AllowDebuffs = false;
-        public int DefaultMBTime = 9;
-        public Dictionary<string, BTPair> BuffSets;
+        public bool AllowDebuffs = false;                   //Allows gmb and mb to have debuffs in the command line
+        public int DefaultMBTime = 9;                       //The default time (in minutes) gmb and mb sets a buff
+        public Dictionary<string, BTPair> BuffSets;         //BuffSets Dictionary
 
         public static mbConfig Read(string path)
         {
@@ -58,11 +58,11 @@ namespace MultiBuff
         public void Write(Stream stream)
         {
             {
-                List<int> magbuffs = new List<int>() { 6, 7, 26, 29 };
-                List<int> ranbuffs = new List<int>() { 3, 16, 17, 63 };
-                BuffSets = new Dictionary<string, BTPair>();
-                BuffSets.Add("magic", new BTPair(magbuffs, 5));
-                BuffSets.Add("range", new BTPair(ranbuffs, 9));
+                List<int> magbuffs = new List<int>() { 6, 7, 26, 29 };          //new example buff list
+                List<int> ranbuffs = new List<int>() { 3, 16, 17, 63 };         
+                BuffSets = new Dictionary<string, BTPair>();                    
+                BuffSets.Add("magic", new BTPair(magbuffs, 5));                 //Add to BuffSets Dictionary(string, List<int> bListVal, int bTimeVal)
+                BuffSets.Add("range", new BTPair(ranbuffs, 9));                 
             }
 
             var str = JsonConvert.SerializeObject(this, Formatting.Indented);
