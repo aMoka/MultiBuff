@@ -158,28 +158,16 @@ namespace MultiBuff
                     }
                     id = found[0];
                 }
-                if (!config.AllowDebuffs)
+                if (id < 0 && !config.AllowDebuffs && !validBuffs.Contains(id))
                 {
-                    if (id > 0 && validBuffs.Contains(id))
-                    {
-                        args.Player.SetBuff(id, 3600 * config.DefaultMBTime);
-                        args.Player.SendSuccessMessage("You have buffed yourself with {0}({1})!",
-                            TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
-                    }
-                    else
-                        args.Player.SendErrorMessage(string.Format("Invalid buff{0}",
-                            validBuffs.Contains(id) ? ": debuff!" : "!"));
+                    args.Player.SendErrorMessage(string.Format("Invalid buff{0}", 
+                        (!validBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
                 }
                 else
                 {
-                    if (id > 0)
-                    {
-                        args.Player.SetBuff(id, 3600 * config.DefaultMBTime);
-                        args.Player.SendSuccessMessage("You have buffed yourself with {0}({1})!",
-                            TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
-                    }
-                    else
-                        args.Player.SendErrorMessage("Invalid buff ID!");
+                    args.Player.SetBuff(id, 3600 * config.DefaultMBTime);
+                    args.Player.SendSuccessMessage("You have buffed yourself with {0}({1})!",
+                        TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
                 }
             }
         }
@@ -190,23 +178,24 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 2)
             {
-                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmb <player> <buff1 id/name> [buff2 id/name] ...");
+                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmb <-all/player> <buff1 id/name> [buff2 id/name] ...");
                 return;
             }
             int id = 0;
             var foundplr = TShock.Utils.FindPlayer(args.Parameters[0]);
-            if (foundplr.Count == 0)
+            if (foundplr.Count < 1 && !(args.Parameters[0] == "-all"))
             {
                 args.Player.SendErrorMessage("Invalid player!");
                 return;
             }
-            else if (foundplr.Count > 1)
+            else if (foundplr.Count > 1 && !(args.Parameters[0] == "-all"))
             {
                 TShock.Utils.SendMultipleMatchError(args.Player, foundplr.Select(p => p.Name));
                 return;
             }
             else
             {
+                List<string> addedBuffs = new List<string>();
                 foreach (string buffs in args.Parameters.Skip(1))
                 {
                     if (!int.TryParse(buffs, out id))
@@ -220,36 +209,44 @@ namespace MultiBuff
                         else if (found.Count > 1)
                         {
                             TShock.Utils.SendMultipleMatchError(args.Player, found.Select(b => Main.buffName[b]));
+                            return;
                         }
                         id = found[0];
                     }
-                    if (!config.AllowDebuffs)
+                    if (id < 0 && !config.AllowDebuffs && !validBuffs.Contains(id))
                     {
-                        if (id > 0 && validBuffs.Contains(id))
-                        {
-                            foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
-                            args.Player.SendSuccessMessage("You have buffed {0} with {1}({2})!",
-                                foundplr[0].Name, TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
-                            foundplr[0].SendSuccessMessage("{0} buffed you with {1}({2})!",
-                                args.Player.Name, TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
-                        }
-                        else
-                            args.Player.SendErrorMessage(string.Format("Invalid buff{0}", 
-                                validBuffs.Contains(id) ? ": debuff!" : "!"));
+                        args.Player.SendErrorMessage(string.Format("Invalid buff{0}", 
+                            (!validBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
+                        return;
                     }
                     else
                     {
-                        if (id > 0)
+                        if (args.Parameters[0] == "-all")
                         {
-                            foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
-                            args.Player.SendSuccessMessage("You have buffed {0} with {1}({2})!",
-                                foundplr[0].Name, TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
-                            foundplr[0].SendSuccessMessage("{0} buffed you with {1}({2})!",
-                                args.Player.Name, TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
+                            foreach (TSPlayer player in TShock.Players)
+                            {
+                                player.SetBuff(id, 3600 * config.DefaultMBTime);
+                                addedBuffs.Add(TShock.Utils.GetBuffName(id));
+                            }
                         }
                         else
-                            args.Player.SendErrorMessage("Invalid buff!");
+                        {
+                            foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
+                            addedBuffs.Add(TShock.Utils.GetBuffName(id));
+                        }
                     }
+                }
+                if (args.Parameters[0] == "-all")
+                {
+                    TSPlayer.All.SendInfoMessage("{0} buffed everyone with {1}!",
+                        args.Player.Name, string.Join(", ", addedBuffs));
+                }
+                else
+                {
+                    args.Player.SendSuccessMessage("You have buffed {0} with {1}!",
+                        foundplr[0].Name, string.Join(", ", addedBuffs));
+                    foundplr[0].SendSuccessMessage("{0} buffed you with {1}!",
+                        args.Player.Name, string.Join(", ", addedBuffs));
                 }
             }
         }
@@ -260,10 +257,19 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 1)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /bset <buffset name>");
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /bset <-list/buffset name>");
                 return;
             }
-            BTPair pair;                                                                            
+            if (args.Parameters[0].ToLower() == "-list")
+            {
+                List<string> allBSets = new List<string>(config.BuffSets.Keys);
+                if (allBSets.Count < 1)
+                    args.Player.SendSuccessMessage("There are no buff sets configured!");
+                else
+                    args.Player.SendSuccessMessage("Buff sets: {0}", string.Join(", ", allBSets));
+                return;
+            }
+            BTPair pair;
             if (config.BuffSets.TryGetValue(args.Parameters[0], out pair))                          //get the values from the string (dictionary key) from cmd
             {
                 foreach (int buff in pair.Buffs)                                                    //get each int in the List<int> from the values of the buffset
@@ -282,16 +288,17 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 2)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbset <player> <buffset name>");
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbset <-all/player> <buffset name>");
                 return;
             }
             BTPair pair;
             var foundplr = TShock.Utils.FindPlayer(args.Parameters[1]);
-            if (foundplr.Count < 1)
+            if (foundplr.Count < 1 && !(args.Parameters[0] == "-all"))
             {
                 args.Player.SendErrorMessage("Invalid player!");
+                return;
             }
-            else if (foundplr.Count > 1)
+            else if (foundplr.Count > 1 && !(args.Parameters[0] == "-all"))
             {
                 List<string> foundPlayers = new List<string>();
                 foreach (TSPlayer player in foundplr)
@@ -299,6 +306,7 @@ namespace MultiBuff
                     foundPlayers.Add(player.Name);
                 }
                 TShock.Utils.SendMultipleMatchError(args.Player, foundPlayers);
+                return;
             }
             else
             {
@@ -306,10 +314,28 @@ namespace MultiBuff
                 {
                     foreach (int buff in pair.Buffs)
                     {
-                        foundplr[0].SetBuff(buff, 3600 * pair.Time);
+                        if (args.Parameters[0] == "-all")
+                        {
+                            foreach (TSPlayer player in TShock.Players)
+                            {
+                                player.SetBuff(buff, 3600 * pair.Time);
+                            }
+                        }
+                        else
+                            foundplr[0].SetBuff(buff, 3600 * pair.Time);
                     }
-                    args.Player.SendSuccessMessage("Buffed {0} with the {1} set!", foundplr[0].Name, args.Parameters[0]);
-                    foundplr[0].SendSuccessMessage("{0} buffed you with the {1} set!", args.Player.Name, args.Parameters[0]);
+                    if (args.Parameters[0] == "-all")
+                    {
+                        TSPlayer.All.SendInfoMessage("{0} buffed everyone with the {1} set!",
+                            args.Player.Name, args.Parameters[1]);
+                    }
+                    else
+                    {
+                    args.Player.SendSuccessMessage("Buffed {0} with the {1} set!", 
+                        foundplr[0].Name, args.Parameters[1]);
+                    foundplr[0].SendSuccessMessage("{0} buffed you with the {1} set!", 
+                        args.Player.Name, args.Parameters[1]);
+                    }
                 }
                 else
                     args.Player.SendErrorMessage("Invalid buff set!");
