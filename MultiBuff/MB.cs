@@ -131,9 +131,11 @@ namespace MultiBuff
             #endregion;
 
             Commands.ChatCommands.Add(new Command("tshock.buff.self", multiBuff, "multibuff", "mb"));
-            Commands.ChatCommands.Add(new Command("tshock.buff.others", giveMultiBuff, "gmultibuff", "gmb"));
+            Commands.ChatCommands.Add(new Command("tshock.buff.others", giveMultiBuff, "gmb"));
+            Commands.ChatCommands.Add(new Command("tshock.buff.others", giveMultiBuffAll, "gmba"));
             Commands.ChatCommands.Add(new Command("mb.buffset.self", buffSet, "bset"));
             Commands.ChatCommands.Add(new Command("mb.buffset.others", giveBuffSet, "gbset"));
+            Commands.ChatCommands.Add(new Command("mb.buffset.other", giveBuffSetAll, "gbseta"));
             Commands.ChatCommands.Add(new Command("mb.admin.reload", mbReload, "reloadmb"));
             Commands.ChatCommands.Add(new Command("mb.everbuff", everBuff, "everbuff", "eb"));
 
@@ -207,17 +209,17 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 2)
             {
-                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmb <-all/player> <buff1 id/name> [buff2 id/name] ...");
+                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmb <player> <buff1 id/name> [buff2 id/name] ...");
                 return;
             }
             int id = 0;
             var foundplr = TShock.Utils.FindPlayer(args.Parameters[0]);
-            if (foundplr.Count < 1 && !(args.Parameters[0] == "-all"))
+            if (foundplr.Count < 1)
             {
                 args.Player.SendErrorMessage("Invalid player!");
                 return;
             }
-            else if (foundplr.Count > 1 && !(args.Parameters[0] == "-all"))
+            else if (foundplr.Count > 1)
             {
                 TShock.Utils.SendMultipleMatchError(args.Player, foundplr.Select(p => p.Name));
                 return;
@@ -244,40 +246,68 @@ namespace MultiBuff
                     }
                     if (id < 0 && !config.AllowDebuffs && !validEverBuffs.Contains(id))
                     {
-                        args.Player.SendErrorMessage(string.Format("Invalid buff{0}", 
+                        args.Player.SendErrorMessage(string.Format("Invalid buff{0}",
                             (!validEverBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
                         return;
                     }
                     else
                     {
-                        if (args.Parameters[0] == "-all")
-                        {
-                            foreach (TSPlayer player in TShock.Players)
-                            {
-                                player.SetBuff(id, 3600 * config.DefaultMBTime);
-                                addedBuffs.Add(TShock.Utils.GetBuffName(id));
-                            }
-                        }
-                        else
-                        {
-                            foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
-                            addedBuffs.Add(TShock.Utils.GetBuffName(id));
-                        }
+                        foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
+                        addedBuffs.Add(TShock.Utils.GetBuffName(id));
                     }
                 }
-                if (args.Parameters[0] == "-all")
+                args.Player.SendSuccessMessage("You have buffed {0} with {1}!",
+                            foundplr[0].Name, string.Join(", ", addedBuffs));
+                foundplr[0].SendSuccessMessage("{0} buffed you with {1}!",
+                    args.Player.Name, string.Join(", ", addedBuffs));
+            }
+        }
+        #endregion;
+
+        #region giveMBAll
+        public static void giveMultiBuffAll(CommandArgs args)
+        {
+            if (args.Parameters.Count < 1)
+            {
+                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmba <buff1 id/name> [buff2 id/name] ...");
+                return;
+            }
+            int id = 0;
+            List<string> addedBuffs = new List<string>();
+            foreach (string buffs in args.Parameters)
+            {
+                if (!int.TryParse(buffs, out id))
                 {
-                    TSPlayer.All.SendInfoMessage("{0} buffed everyone with {1}!",
-                        args.Player.Name, string.Join(", ", addedBuffs));
+                    var found = TShock.Utils.GetBuffByName(buffs);
+                    if (found.Count == 0)
+                    {
+                        args.Player.SendErrorMessage("Invalid buff name!");
+                        return;
+                    }
+                    else if (found.Count > 1)
+                    {
+                        TShock.Utils.SendMultipleMatchError(args.Player, found.Select(b => Main.buffName[b]));
+                        return;
+                    }
+                    id = found[0];
+                }
+                if (id < 0 && !config.AllowDebuffs && !validEverBuffs.Contains(id))
+                {
+                    args.Player.SendErrorMessage(string.Format("Invalid buff{0}",
+                        (!validEverBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
+                    return;
                 }
                 else
                 {
-                    args.Player.SendSuccessMessage("You have buffed {0} with {1}!",
-                        foundplr[0].Name, string.Join(", ", addedBuffs));
-                    foundplr[0].SendSuccessMessage("{0} buffed you with {1}!",
-                        args.Player.Name, string.Join(", ", addedBuffs));
+                    foreach (MBPlayer plr in Tools.Players)
+                    {
+                        plr.TSPlayer.SetBuff(id, 3600 * config.DefaultMBTime);
+                    }
+                    addedBuffs.Add(TShock.Utils.GetBuffName(id));
                 }
             }
+            TSPlayer.All.SendInfoMessage("{0} buffed everyone with {1}!",
+                args.Player.Name, string.Join(", ", addedBuffs));
         }
         #endregion;
 
@@ -286,7 +316,7 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 1)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /bset <-list/buffset name>");
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /bset <-list/buffset name>.");
                 return;
             }
             if (args.Parameters[0].ToLower() == "-list")
@@ -295,7 +325,7 @@ namespace MultiBuff
                 if (allBSets.Count < 1)
                     args.Player.SendSuccessMessage("There are no buff sets configured!");
                 else
-                    args.Player.SendSuccessMessage("Buff sets: {0}", string.Join(", ", allBSets));
+                    args.Player.SendSuccessMessage("Buff sets: {0}.", string.Join(", ", allBSets));
                 return;
             }
             BTPair pair;
@@ -317,17 +347,17 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 2)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbset <-all/player> <buffset name>");
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbset <player> <buffset name>");
                 return;
             }
             BTPair pair;
-            var foundplr = TShock.Utils.FindPlayer(args.Parameters[1]);
-            if (foundplr.Count < 1 && !(args.Parameters[0] == "-all"))
+            var foundplr = TShock.Utils.FindPlayer(args.Parameters[0]);
+            if (foundplr.Count < 1)
             {
                 args.Player.SendErrorMessage("Invalid player!");
                 return;
             }
-            else if (foundplr.Count > 1 && !(args.Parameters[0] == "-all"))
+            else if (foundplr.Count > 1)
             {
                 List<string> foundPlayers = new List<string>();
                 foreach (TSPlayer player in foundplr)
@@ -339,38 +369,49 @@ namespace MultiBuff
             }
             else
             {
-                if (config.BuffSets.TryGetValue(args.Parameters[0], out pair))
+                if (config.BuffSets.TryGetValue(args.Parameters[1], out pair))
                 {
                     foreach (int buff in pair.Buffs)
                     {
-                        if (args.Parameters[0] == "-all")
-                        {
-                            foreach (TSPlayer player in TShock.Players)
-                            {
-                                player.SetBuff(buff, 3600 * pair.Time);
-                            }
-                        }
-                        else
-                            foundplr[0].SetBuff(buff, 3600 * pair.Time);
+                        foundplr[0].SetBuff(buff, 3600 * pair.Time);
                     }
-                    if (args.Parameters[0] == "-all")
-                    {
-                        TSPlayer.All.SendInfoMessage("{0} buffed everyone with the {1} set!",
-                            args.Player.Name, args.Parameters[1]);
-                    }
-                    else
-                    {
                     args.Player.SendSuccessMessage("Buffed {0} with the {1} set!", 
                         foundplr[0].Name, args.Parameters[1]);
                     foundplr[0].SendSuccessMessage("{0} buffed you with the {1} set!", 
                         args.Player.Name, args.Parameters[1]);
-                    }
                 }
                 else
                     args.Player.SendErrorMessage("Invalid buff set!");
             }
             
         }
+        #endregion
+
+        #region giveBuffSetAll
+        public static void giveBuffSetAll(CommandArgs args)
+        {
+            if (args.Parameters.Count < 1)
+            {
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbseta <buffset name>");
+                return;
+            }
+            BTPair pair;
+
+            if (config.BuffSets.TryGetValue(args.Parameters[0], out pair))
+            {
+                foreach (int buff in pair.Buffs)
+                {
+                    foreach (MBPlayer plr in Tools.Players)
+                    {
+                        plr.TSPlayer.SetBuff(buff, 3600 * pair.Time);
+                    }
+                }
+                TSPlayer.All.SendInfoMessage("{0} buffed everyone with the {1} set!",
+                    args.Player.Name, args.Parameters[0]);
+            }
+            else
+                args.Player.SendErrorMessage("Invalid buff set!");
+            }
         #endregion
 
         #region mbReload
@@ -389,33 +430,53 @@ namespace MultiBuff
                 var player = Tools.GetPlayer(args.Player.Index);
                 player.isEverBuff = !player.isEverBuff;
 
-                args.Player.SendSuccessMessage("Everbuffs are now " + (player.isEverBuff ? "on" : "off"));
+                args.Player.SendSuccessMessage("Everbuffs are now " + (player.isEverBuff ? "on." : "off."));
             }
             else
             {
                 string str = args.Parameters[0];
 
-                var findPlayers = TShockAPI.TShock.Utils.FindPlayer(str);
-
-                if (findPlayers.Count > 1)
+                if (str == "-allon")
                 {
-                    TShock.Utils.SendMultipleMatchError(args.Player, findPlayers.Select(p => p.Name));
+                    foreach (MBPlayer plr in Tools.Players)
+                    {
+                        plr.isEverBuff = true;
+                    }
+                    args.Player.SendSuccessMessage("You have activated everbuffs for everyone!");
+                    TSPlayer.All.SendSuccessMessage("{0} has activated everbuffs for everyone!", args.Player.Name);
+                    return;
                 }
-                else if (findPlayers.Count < 1)
+                else if (str == "-alloff")
                 {
-                    args.Player.SendErrorMessage(findPlayers.Count + " players matched.");
+                    foreach (MBPlayer plr in Tools.Players)
+                    {
+                        plr.isEverBuff = false;
+                    }
+                    args.Player.SendSuccessMessage("You have deactivated everbuffs for everyone!");
+                    TSPlayer.All.SendSuccessMessage("{0} has deactivated everbuffs for everyone!", args.Player.Name);
+                    return;
+                }
+                var foundplr = TShockAPI.TShock.Utils.FindPlayer(str);
+
+                if (foundplr.Count > 1 && !(str == "-allon" || str == "-alloff"))
+                {
+                    TShock.Utils.SendMultipleMatchError(args.Player, foundplr.Select(p => p.Name));
+                }
+                else if (foundplr.Count < 1 && !(str == "-allon" || str == "-alloff"))
+                {
+                    args.Player.SendErrorMessage(foundplr.Count + " players matched.");
                 }
                 else
                 {
-                    TShockAPI.TSPlayer ply = findPlayers[0];
+                    TShockAPI.TSPlayer ply = foundplr[0];
                     var player = Tools.GetPlayer(ply.Index);
 
                     player.isEverBuff = !player.isEverBuff;
 
-                    args.Player.SendSuccessMessage(string.Format("You have {0}tivated permabuffs on {1}.",
+                    args.Player.SendSuccessMessage(string.Format("You have {0}tivated everbuffs on {1}.",
                         (player.isEverBuff ? "ac" : "deac"), ply.Name));
 
-                    ply.SendInfoMessage(string.Format("{0} has {1}tivated permabuffs on you",
+                    ply.SendInfoMessage(string.Format("{0} has {1}tivated everbuffs on you.",
                         args.Player.Name, (player.isEverBuff ? "ac" : "deac")));
                 }
             }
