@@ -130,9 +130,9 @@ namespace MultiBuff
 
             #endregion;
 
-            Commands.ChatCommands.Add(new Command("tshock.buff.self", multiBuff, "multibuff", "mb"));
-            Commands.ChatCommands.Add(new Command("tshock.buff.others", giveMultiBuff, "gmb"));
-            Commands.ChatCommands.Add(new Command("tshock.buff.others", giveMultiBuffAll, "gmba"));
+            Commands.ChatCommands.Add(new Command("mb.buff.self", multiBuff, "multibuff", "mb"));
+            Commands.ChatCommands.Add(new Command("mb.buff.others", giveMultiBuff, "gmb"));
+            Commands.ChatCommands.Add(new Command("mb.buff.others", giveMultiBuffAll, "gmba"));
             Commands.ChatCommands.Add(new Command("mb.buffset.self", buffSet, "bset"));
             Commands.ChatCommands.Add(new Command("mb.buffset.others", giveBuffSet, "gbset"));
             Commands.ChatCommands.Add(new Command("mb.buffset.other", giveBuffSetAll, "gbseta"));
