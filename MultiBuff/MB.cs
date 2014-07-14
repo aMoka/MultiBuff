@@ -168,12 +168,31 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 1)
             {
-                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /mb <buff1 id/name> [buff2 id/name] ...");
+                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /mb <buff1 id/name> [buff2 id/name] ... [-t<seconds>]");
                 return;
             }
+
+            int time = config.DefaultMBTime;
+            int chktime;
+            string str = args.Parameters[args.Parameters.Count - 1];
+
+            if (str.StartsWith("-t"))
+            {
+                if (!int.TryParse(str.Replace("-t", ""), out chktime))
+                {
+                    args.Player.SendErrorMessage("Invalid time! Using config-defined time.");
+                    return;
+                }
+                else
+                    time = chktime;
+
+                args.Parameters.RemoveAt(args.Parameters.Count - 1);
+            }
+            List<string> addedBuffs = new List<string>();
             foreach (string buffs in args.Parameters)
             {
-                int id = 0;
+                int id;
+
                 if (!int.TryParse(buffs, out id))
                 {
                     var found = TShock.Utils.GetBuffByName(buffs);
@@ -193,14 +212,16 @@ namespace MultiBuff
                 {
                     args.Player.SendErrorMessage(string.Format("Invalid buff{0}", 
                         (!validEverBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
+                    return;
                 }
                 else
                 {
-                    args.Player.SetBuff(id, 3600 * config.DefaultMBTime);
-                    args.Player.SendSuccessMessage("You have buffed yourself with {0}({1})!",
-                        TShock.Utils.GetBuffName(id), TShock.Utils.GetBuffDescription(id));
+                    args.Player.SetBuff(id, 60 * time);
+                    addedBuffs.Add(TShock.Utils.GetBuffName(id));
                 }
             }
+            args.Player.SendSuccessMessage("You have buffed yourself with {0}!", 
+                String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
         }
         #endregion;
 
@@ -209,11 +230,28 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 2)
             {
-                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmb <player> <buff1 id/name> [buff2 id/name] ...");
+                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmb <player> <buff1 id/name> [buff2 id/name] ... [-t<seconds>]");
                 return;
             }
+
             int id = 0;
             var foundplr = TShock.Utils.FindPlayer(args.Parameters[0]);
+            int time = config.DefaultMBTime;
+            int chktime;
+            string str = args.Parameters[args.Parameters.Count - 1];
+
+            if (str.StartsWith("-t"))
+            {
+                if (!int.TryParse(str.Replace("-t", ""), out chktime))
+                {
+                    args.Player.SendErrorMessage("Invalid time! Using config-defined time.");
+                    return;
+                }
+                else
+                    time = chktime;
+
+                args.Parameters.RemoveAt(args.Parameters.Count - 1);
+            }
             if (foundplr.Count < 1)
             {
                 args.Player.SendErrorMessage("Invalid player!");
@@ -252,14 +290,15 @@ namespace MultiBuff
                     }
                     else
                     {
-                        foundplr[0].SetBuff(id, 3600 * config.DefaultMBTime);
+                        foundplr[0].SetBuff(id, 60 * time);
                         addedBuffs.Add(TShock.Utils.GetBuffName(id));
                     }
                 }
-                args.Player.SendSuccessMessage("You have buffed {0} with {1}!",
-                            foundplr[0].Name, string.Join(", ", addedBuffs));
+                args.Player.SendSuccessMessage("You have buffed {0} with {1}!", foundplr[0].Name, 
+                            String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
                 foundplr[0].SendSuccessMessage("{0} buffed you with {1}!",
-                    args.Player.Name, string.Join(", ", addedBuffs));
+                    args.Player.Name, 
+                    String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
             }
         }
         #endregion;
@@ -269,11 +308,27 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 1)
             {
-                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmba <buff1 id/name> [buff2 id/name] ...");
+                args.Player.SendErrorMessage("Invalid Syntax! Proper syntax: /gmba <buff1 id/name> [buff2 id/name] ... [-t<seconds>]");
                 return;
             }
             int id = 0;
             List<string> addedBuffs = new List<string>();
+            int time = config.DefaultMBTime;
+            int chktime;
+            string str = args.Parameters[args.Parameters.Count - 1];
+
+            if (str.StartsWith("-t"))
+            {
+                if (!int.TryParse(str.Replace("-t", ""), out chktime))
+                {
+                    args.Player.SendErrorMessage("Invalid time! Using config-defined time.");
+                    return;
+                }
+                else
+                    time = chktime;
+
+                args.Parameters.RemoveAt(args.Parameters.Count - 1);
+            }
             foreach (string buffs in args.Parameters)
             {
                 if (!int.TryParse(buffs, out id))
@@ -301,13 +356,13 @@ namespace MultiBuff
                 {
                     foreach (MBPlayer plr in Tools.Players)
                     {
-                        plr.TSPlayer.SetBuff(id, 3600 * config.DefaultMBTime);
+                        plr.TSPlayer.SetBuff(id, 60 * time);
                     }
                     addedBuffs.Add(TShock.Utils.GetBuffName(id));
                 }
             }
-            TSPlayer.All.SendInfoMessage("{0} buffed everyone with {1}!",
-                args.Player.Name, string.Join(", ", addedBuffs));
+            TSPlayer.All.SendInfoMessage("{0} buffed everyone with {1}!", args.Player.Name, 
+                String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
         }
         #endregion;
 
@@ -316,24 +371,40 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 1)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /bset <-list/buffset name>.");
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /bset <-list/buffset name> [-t<seconds>]");
                 return;
             }
             if (args.Parameters[0].ToLower() == "-list")
             {
                 List<string> allBSets = new List<string>(config.BuffSets.Keys);
                 if (allBSets.Count < 1)
-                    args.Player.SendSuccessMessage("There are no buff sets configured!");
-                else
-                    args.Player.SendSuccessMessage("Buff sets: {0}.", string.Join(", ", allBSets));
+                    args.Player.SendInfoMessage("There are no buff sets configured!");
+                else                
+                    args.Player.SendInfoMessage("Buff sets: {0}.", string.Join(", ", allBSets));
                 return;
             }
             BTPair pair;
+            int time = 0;
+            int chktime;
+            string str = args.Parameters[args.Parameters.Count - 1];
+
+            if (str.StartsWith("-t"))
+            {
+                if (!int.TryParse(str.Replace("-t", ""), out chktime))
+                {
+                    args.Player.SendErrorMessage("Invalid time! Using config-defined time.");
+                    return;
+                }
+                else
+                    time = chktime;
+
+                args.Parameters.RemoveAt(args.Parameters.Count - 1);
+            }
             if (config.BuffSets.TryGetValue(args.Parameters[0], out pair))                          //get the values from the string (dictionary key) from cmd
             {
                 foreach (int buff in pair.Buffs)                                                    //get each int in the List<int> from the values of the buffset
                 {
-                    args.Player.SetBuff(buff, 3600 * pair.Time);
+                    args.Player.SetBuff(buff, 60 * ((time == 0) ? pair.Time : time));
                 }
                 args.Player.SendSuccessMessage("Buffed with the {0} set!", args.Parameters[0]);
             }
@@ -347,11 +418,27 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 2)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbset <player> <buffset name>");
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbset <player> <buffset name> [-t<seconds>]");
                 return;
             }
             BTPair pair;
             var foundplr = TShock.Utils.FindPlayer(args.Parameters[0]);
+            int time = 0;
+            int chktime;
+            string str = args.Parameters[args.Parameters.Count - 1];
+
+            if (str.StartsWith("-t"))
+            {
+                if (!int.TryParse(str.Replace("-t", ""), out chktime))
+                {
+                    args.Player.SendErrorMessage("Invalid time! Using config-defined time.");
+                    return;
+                }
+                else
+                    time = chktime;
+
+                args.Parameters.RemoveAt(args.Parameters.Count - 1);
+            }
             if (foundplr.Count < 1)
             {
                 args.Player.SendErrorMessage("Invalid player!");
@@ -373,7 +460,7 @@ namespace MultiBuff
                 {
                     foreach (int buff in pair.Buffs)
                     {
-                        foundplr[0].SetBuff(buff, 3600 * pair.Time);
+                        foundplr[0].SetBuff(buff, 60 * ((time == 0) ? pair.Time : time));
                     }
                     args.Player.SendSuccessMessage("Buffed {0} with the {1} set!", 
                         foundplr[0].Name, args.Parameters[1]);
@@ -392,21 +479,36 @@ namespace MultiBuff
         {
             if (args.Parameters.Count < 1)
             {
-                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbseta <buffset name>");
+                args.Player.SendErrorMessage("Invalid syntax! Proper syntax: /gbseta <buffset name> [-t<seconds>]");
                 return;
             }
             BTPair pair;
+            int time = 0;
+            int chktime;
+            string str = args.Parameters[args.Parameters.Count - 1];
 
+            if (str.StartsWith("-t"))
+            {
+                if (!int.TryParse(str.Replace("-t", ""), out chktime))
+                {
+                    args.Player.SendErrorMessage("Invalid time! Using config-defined time.");
+                    return;
+                }
+                else
+                    time = chktime;
+
+                args.Parameters.RemoveAt(args.Parameters.Count - 1);
+            }
             if (config.BuffSets.TryGetValue(args.Parameters[0], out pair))
             {
                 foreach (int buff in pair.Buffs)
                 {
                     foreach (MBPlayer plr in Tools.Players)
                     {
-                        plr.TSPlayer.SetBuff(buff, 3600 * pair.Time);
+                        plr.TSPlayer.SetBuff(buff, 60 * ((time == 0) ? pair.Time : time));
                     }
                 }
-                TSPlayer.All.SendInfoMessage("{0} buffed everyone with the {1} set!",
+                TSPlayer.All.SendSuccessMessage("{0} buffed everyone with the {1} set!",
                     args.Player.Name, args.Parameters[0]);
             }
             else
