@@ -36,8 +36,6 @@ namespace MultiBuff
         public override void Initialize()
         {
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
-            ServerApi.Hooks.NetGreetPlayer.Register(this, OnJoin);
-            ServerApi.Hooks.ServerLeave.Register(this, OnLeave);
         }
         #endregion;
 
@@ -47,8 +45,6 @@ namespace MultiBuff
             if (disposing)
             {
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
-                ServerApi.Hooks.NetGreetPlayer.Deregister(this, OnJoin);
-                ServerApi.Hooks.ServerLeave.Deregister(this, OnLeave);
             }
         }
         #endregion;
@@ -137,24 +133,6 @@ namespace MultiBuff
             SetUpConfig();
         }
         #endregion;
-
-        #region OnJoin
-        public void OnJoin(GreetPlayerEventArgs args)
-        {
-            Tools.Players.Add(new MBPlayer(args.Who));
-
-            var player = TShock.Players[args.Who];
-            var MBPlayer = Tools.GetPlayer(args.Who);
-        }
-        #endregion
-
-        #region OnLeave
-        public void OnLeave(LeaveEventArgs args)
-        {
-            var player = Tools.GetPlayer(args.Who);
-            Tools.Players.RemoveAll(pl => pl.Index == args.Who);
-        }
-        #endregion
 
 		#region MultiBuff
 		public static void MultiBuff(CommandArgs args)
@@ -347,9 +325,9 @@ namespace MultiBuff
                 }
                 else
                 {
-                    foreach (MBPlayer plr in Tools.Players)
+					foreach (TSPlayer player in TShock.Players)
                     {
-                        plr.TSPlayer.SetBuff(id, 60 * time);
+						player.SetBuff(id, 60 * time);
                     }
                     addedBuffs.Add(TShock.Utils.GetBuffName(id));
                 }
@@ -496,9 +474,9 @@ namespace MultiBuff
             {
                 foreach (int buff in pair.Buffs)
                 {
-                    foreach (MBPlayer plr in Tools.Players)
+					foreach (TSPlayer player in TShock.Players)
                     {
-                        plr.TSPlayer.SetBuff(buff, 60 * ((time == 0) ? pair.Time : time));
+                        player.SetBuff(buff, 60 * ((time == 0) ? pair.Time : time));
                     }
                 }
                 TSPlayer.All.SendSuccessMessage("{0} buffed everyone with the {1} set!",

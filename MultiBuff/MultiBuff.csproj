@@ -61,10 +61,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Tools.cs" />
     <Compile Include="MB.cs" />
     <Compile Include="MBConfig.cs" />
-    <Compile Include="MBPlayer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
