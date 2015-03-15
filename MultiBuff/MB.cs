@@ -2,23 +2,20 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
-using System.Text;
 using System.IO;
-using System.Threading.Tasks;
 using Terraria;
-using TerrariaApi;
 using TerrariaApi.Server;
 using TShockAPI;
 
 namespace MultiBuff
 {
-    [ApiVersion(1, 16)]
+    [ApiVersion(1, 17)]
     public class MB : TerrariaPlugin
     {
-        public static mbConfig config { get; set; }
+		public static MBConfig config { get; set; }
         public static string configDir { get { return Path.Combine(TShock.SavePath, "PluginConfigs"); } }
         public static string configPath { get { return Path.Combine(configDir, "MBConfig.json"); } }
-        public static List<int> validEverBuffs = new List<int>();
+		public static List<int> validBuffs = new List<int>();
         
 
         #region InfoStuff
@@ -61,86 +58,82 @@ namespace MultiBuff
         {
             Order = 1;
 
-            config = new mbConfig();
+			config = new MBConfig();
         }
 
         #region OnInitialize
         public void OnInitialize(EventArgs args)
         {
             #region validEverBuffsList
-            validEverBuffs.Add(1); //Obsidian Skin
-            validEverBuffs.Add(2); //Regeneration
-            validEverBuffs.Add(3); //Swiftness
-            validEverBuffs.Add(4); //Gills
-            validEverBuffs.Add(5); //Ironskin
-            validEverBuffs.Add(6); //Mana Regeneration
-            validEverBuffs.Add(7); //Magic Power
-            validEverBuffs.Add(8); //Featherfall
-            validEverBuffs.Add(9); //Spelunker
-            validEverBuffs.Add(10); //Invisibility
-            validEverBuffs.Add(11); //Shine
-            validEverBuffs.Add(12); //Night Owl
-            validEverBuffs.Add(13); //Battle
-            validEverBuffs.Add(14); //Thorns
-            validEverBuffs.Add(15); //Water Walking
-            validEverBuffs.Add(16); //Archery
-            validEverBuffs.Add(17); //Hunter
-            validEverBuffs.Add(18); //Gravitation
-            validEverBuffs.Add(25); //Tipsy
-            validEverBuffs.Add(26); //Well Fed
-            validEverBuffs.Add(29); //Clairvoyance
-            validEverBuffs.Add(48); //Honey
-            validEverBuffs.Add(58); //Rapid Healing
-            validEverBuffs.Add(59); //Shadow Dodge
-            validEverBuffs.Add(62); //Ice Barrier
-            validEverBuffs.Add(63); //Panic!
-            validEverBuffs.Add(71); //Weapon Imbue: Venom
-            validEverBuffs.Add(73); //Weapon Imbue: Cursed Flames
-            validEverBuffs.Add(74); //Weapon Imbue: Fire
-            validEverBuffs.Add(75); //Weapon Imbue: Gold
-            validEverBuffs.Add(76); //Weapon Imbue: Ichor
-            validEverBuffs.Add(77); //Weapon Imbue: Nanites
-            validEverBuffs.Add(78); //Weapon Imbue: Confetti
-            validEverBuffs.Add(79); //Weapon Imbue: Poison
-            validEverBuffs.Add(93); //Ammo Box
-            validEverBuffs.Add(95); //Beetle Endurance (15%)	 
-            validEverBuffs.Add(96); //Beetle Endurance (30%)	 
-            validEverBuffs.Add(97); //Beetle Endurance (45%)	 
-            validEverBuffs.Add(98); //Beetle Might (10%)	 
-            validEverBuffs.Add(99); //Beetle Might (20%)	 
-            validEverBuffs.Add(100); //Beetle Might (30%)
-            validEverBuffs.Add(104); //Mining
-            validEverBuffs.Add(105); //Heartreach
-            validEverBuffs.Add(106); //Calm
-            validEverBuffs.Add(107); //Builder
-            validEverBuffs.Add(108); //Titan
-            validEverBuffs.Add(109); //Flipper
-            validEverBuffs.Add(110); //Summoning
-            validEverBuffs.Add(111); //Dangersense
-            validEverBuffs.Add(112); //Ammo Reservation
-            validEverBuffs.Add(113); //Lifeforce
-            validEverBuffs.Add(114); //Endurance
-            validEverBuffs.Add(115); //Rage
-            validEverBuffs.Add(116); //Inferno
-            validEverBuffs.Add(117); //Wrath
-            validEverBuffs.Add(121); //Fishing
-            validEverBuffs.Add(122); //Sonar
-            validEverBuffs.Add(123); //Crate
-            validEverBuffs.Add(124); //Warmth
+            validBuffs.Add(1); //Obsidian Skin
+            validBuffs.Add(2); //Regeneration
+            validBuffs.Add(3); //Swiftness
+            validBuffs.Add(4); //Gills
+            validBuffs.Add(5); //Ironskin
+            validBuffs.Add(6); //Mana Regeneration
+            validBuffs.Add(7); //Magic Power
+            validBuffs.Add(8); //Featherfall
+            validBuffs.Add(9); //Spelunker
+            validBuffs.Add(10); //Invisibility
+            validBuffs.Add(11); //Shine
+            validBuffs.Add(12); //Night Owl
+            validBuffs.Add(13); //Battle
+            validBuffs.Add(14); //Thorns
+            validBuffs.Add(15); //Water Walking
+            validBuffs.Add(16); //Archery
+            validBuffs.Add(17); //Hunter
+            validBuffs.Add(18); //Gravitation
+            validBuffs.Add(25); //Tipsy
+            validBuffs.Add(26); //Well Fed
+            validBuffs.Add(29); //Clairvoyance
+            validBuffs.Add(48); //Honey
+            validBuffs.Add(58); //Rapid Healing
+            validBuffs.Add(59); //Shadow Dodge
+            validBuffs.Add(62); //Ice Barrier
+            validBuffs.Add(63); //Panic!
+            validBuffs.Add(71); //Weapon Imbue: Venom
+            validBuffs.Add(73); //Weapon Imbue: Cursed Flames
+            validBuffs.Add(74); //Weapon Imbue: Fire
+            validBuffs.Add(75); //Weapon Imbue: Gold
+            validBuffs.Add(76); //Weapon Imbue: Ichor
+            validBuffs.Add(77); //Weapon Imbue: Nanites
+            validBuffs.Add(78); //Weapon Imbue: Confetti
+            validBuffs.Add(79); //Weapon Imbue: Poison
+            validBuffs.Add(93); //Ammo Box
+            validBuffs.Add(95); //Beetle Endurance (15%)	 
+            validBuffs.Add(96); //Beetle Endurance (30%)	 
+            validBuffs.Add(97); //Beetle Endurance (45%)	 
+            validBuffs.Add(98); //Beetle Might (10%)	 
+            validBuffs.Add(99); //Beetle Might (20%)	 
+            validBuffs.Add(100); //Beetle Might (30%)
+            validBuffs.Add(104); //Mining
+            validBuffs.Add(105); //Heartreach
+            validBuffs.Add(106); //Calm
+            validBuffs.Add(107); //Builder
+            validBuffs.Add(108); //Titan
+            validBuffs.Add(109); //Flipper
+            validBuffs.Add(110); //Summoning
+            validBuffs.Add(111); //Dangersense
+            validBuffs.Add(112); //Ammo Reservation
+            validBuffs.Add(113); //Lifeforce
+            validBuffs.Add(114); //Endurance
+            validBuffs.Add(115); //Rage
+            validBuffs.Add(116); //Inferno
+            validBuffs.Add(117); //Wrath
+            validBuffs.Add(121); //Fishing
+            validBuffs.Add(122); //Sonar
+            validBuffs.Add(123); //Crate
+            validBuffs.Add(124); //Warmth
 
             #endregion;
 
-            Commands.ChatCommands.Add(new Command("mb.buff.self", multiBuff, "multibuff", "mb"));
-            Commands.ChatCommands.Add(new Command("mb.buff.others", giveMultiBuff, "gmb"));
-            Commands.ChatCommands.Add(new Command("mb.buff.others", giveMultiBuffAll, "gmba"));
-            Commands.ChatCommands.Add(new Command("mb.buffset.self", buffSet, "bset"));
-            Commands.ChatCommands.Add(new Command("mb.buffset.others", giveBuffSet, "gbset"));
-            Commands.ChatCommands.Add(new Command("mb.buffset.other", giveBuffSetAll, "gbseta"));
-            Commands.ChatCommands.Add(new Command("mb.admin.reload", mbReload, "reloadmb"));
-            Commands.ChatCommands.Add(new Command("mb.everbuff", everBuff, "everbuff", "eb"));
-
-            Tools.initializeTimers();
-            Tools.everBuffTimer.Enabled = true;
+			Commands.ChatCommands.Add(new Command("mb.buff.self", MultiBuff, "multibuff", "mb"));
+			Commands.ChatCommands.Add(new Command("mb.buff.others", GiveMultiBuff, "gmb"));
+			Commands.ChatCommands.Add(new Command("mb.buff.others", GiveMultiBuffAll, "gmba"));
+			Commands.ChatCommands.Add(new Command("mb.buffset.self", BuffSet, "bset"));
+			Commands.ChatCommands.Add(new Command("mb.buffset.others", GiveBuffSet, "gbset"));
+			Commands.ChatCommands.Add(new Command("mb.buffset.other", GiveBuffSetAll, "gbseta"));
+			Commands.ChatCommands.Add(new Command("mb.admin.reload", MBReload, "reloadmb"));
             SetUpConfig();
         }
         #endregion;
@@ -163,8 +156,8 @@ namespace MultiBuff
         }
         #endregion
 
-        #region multiBuff
-        public static void multiBuff(CommandArgs args)
+		#region MultiBuff
+		public static void MultiBuff(CommandArgs args)
         {
             if (args.Parameters.Count < 1)
             {
@@ -208,10 +201,10 @@ namespace MultiBuff
                     }
                     id = found[0];
                 }
-                if (id < 0 && !config.AllowDebuffs && !validEverBuffs.Contains(id))
+				if (id < 0 && !config.AllowDebuffs && !validBuffs.Contains(id))
                 {
-                    args.Player.SendErrorMessage(string.Format("Invalid buff{0}", 
-                        (!validEverBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
+                    args.Player.SendErrorMessage(string.Format("Invalid buff{0}",
+						(!validBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
                     return;
                 }
                 else
@@ -225,8 +218,8 @@ namespace MultiBuff
         }
         #endregion;
 
-        #region giveMB
-        public static void giveMultiBuff(CommandArgs args)
+		#region GiveMultiBuff
+		public static void GiveMultiBuff(CommandArgs args)
         {
             if (args.Parameters.Count < 2)
             {
@@ -282,10 +275,10 @@ namespace MultiBuff
                         }
                         id = found[0];
                     }
-                    if (id < 0 && !config.AllowDebuffs && !validEverBuffs.Contains(id))
+					if (id < 0 && !config.AllowDebuffs && !validBuffs.Contains(id))
                     {
                         args.Player.SendErrorMessage(string.Format("Invalid buff{0}",
-                            (!validEverBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
+							(!validBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
                         return;
                     }
                     else
@@ -303,8 +296,8 @@ namespace MultiBuff
         }
         #endregion;
 
-        #region giveMBAll
-        public static void giveMultiBuffAll(CommandArgs args)
+		#region GiveMultiBuffAll
+		public static void GiveMultiBuffAll(CommandArgs args)
         {
             if (args.Parameters.Count < 1)
             {
@@ -346,10 +339,10 @@ namespace MultiBuff
                     }
                     id = found[0];
                 }
-                if (id < 0 && !config.AllowDebuffs && !validEverBuffs.Contains(id))
+				if (id < 0 && !config.AllowDebuffs && !validBuffs.Contains(id))
                 {
                     args.Player.SendErrorMessage(string.Format("Invalid buff{0}",
-                        (!validEverBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
+						(!validBuffs.Contains(id) && !config.AllowDebuffs) ? ": debuff!" : "!"));
                     return;
                 }
                 else
@@ -366,8 +359,8 @@ namespace MultiBuff
         }
         #endregion;
 
-        #region buffSet
-        public static void buffSet(CommandArgs args)
+		#region BuffSet
+		public static void BuffSet(CommandArgs args)
         {
             if (args.Parameters.Count < 1)
             {
@@ -413,8 +406,8 @@ namespace MultiBuff
         }
         #endregion
 
-        #region giveBuffSet
-        public static void giveBuffSet(CommandArgs args)
+		#region GiveBuffSet
+		public static void GiveBuffSet(CommandArgs args)
         {
             if (args.Parameters.Count < 2)
             {
@@ -474,8 +467,8 @@ namespace MultiBuff
         }
         #endregion
 
-        #region giveBuffSetAll
-        public static void giveBuffSetAll(CommandArgs args)
+		#region GiveBuffSetAll
+		public static void GiveBuffSetAll(CommandArgs args)
         {
             if (args.Parameters.Count < 1)
             {
@@ -516,72 +509,11 @@ namespace MultiBuff
             }
         #endregion
 
-        #region mbReload
-        public static void mbReload(CommandArgs args)
+		#region MBReload
+		public static void MBReload(CommandArgs args)
         {
             SetUpConfig();
             args.Player.SendInfoMessage("Attempted to reload the config file");
-        }
-        #endregion
-
-        #region everBuff
-        public static void everBuff(CommandArgs args)
-        {
-            if (args.Parameters.Count == 0)
-            {
-                var player = Tools.GetPlayer(args.Player.Index);
-                player.isEverBuff = !player.isEverBuff;
-
-                args.Player.SendSuccessMessage("Everbuffs are now " + (player.isEverBuff ? "on." : "off."));
-            }
-            else
-            {
-                string str = args.Parameters[0];
-
-                if (str == "-allon")
-                {
-                    foreach (MBPlayer plr in Tools.Players)
-                    {
-                        plr.isEverBuff = true;
-                    }
-                    args.Player.SendSuccessMessage("You have activated everbuffs for everyone!");
-                    TSPlayer.All.SendSuccessMessage("{0} has activated everbuffs for everyone!", args.Player.Name);
-                    return;
-                }
-                else if (str == "-alloff")
-                {
-                    foreach (MBPlayer plr in Tools.Players)
-                    {
-                        plr.isEverBuff = false;
-                    }
-                    args.Player.SendSuccessMessage("You have deactivated everbuffs for everyone!");
-                    TSPlayer.All.SendSuccessMessage("{0} has deactivated everbuffs for everyone!", args.Player.Name);
-                    return;
-                }
-                var foundplr = TShockAPI.TShock.Utils.FindPlayer(str);
-
-                if (foundplr.Count > 1 && !(str == "-allon" || str == "-alloff"))
-                {
-                    TShock.Utils.SendMultipleMatchError(args.Player, foundplr.Select(p => p.Name));
-                }
-                else if (foundplr.Count < 1 && !(str == "-allon" || str == "-alloff"))
-                {
-                    args.Player.SendErrorMessage(foundplr.Count + " players matched.");
-                }
-                else
-                {
-                    TShockAPI.TSPlayer ply = foundplr[0];
-                    var player = Tools.GetPlayer(ply.Index);
-
-                    player.isEverBuff = !player.isEverBuff;
-
-                    args.Player.SendSuccessMessage(string.Format("You have {0}tivated everbuffs on {1}.",
-                        (player.isEverBuff ? "ac" : "deac"), ply.Name));
-
-                    ply.SendInfoMessage(string.Format("{0} has {1}tivated everbuffs on you.",
-                        args.Player.Name, (player.isEverBuff ? "ac" : "deac")));
-                }
-            }
         }
         #endregion
 
@@ -594,7 +526,7 @@ namespace MultiBuff
                     Directory.CreateDirectory(configDir);
 
                 if (File.Exists(configPath))
-                    config = mbConfig.Read(configPath);
+					config = MBConfig.Read(configPath);
                 else
                     config.Write(configPath);
             }

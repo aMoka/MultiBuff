@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
-using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
 namespace MultiBuff
@@ -20,27 +16,27 @@ namespace MultiBuff
         }
     }
 
-    public class mbConfig
+    public class MBConfig
     {
         public bool AllowDebuffs = false;                   //Allows gmb and mb to have debuffs in the command line
         public int DefaultMBTime = 540;                       //The default time (in seconds) gmb and mb sets a buff
         public Dictionary<string, BTPair> BuffSets;         //BuffSets Dictionary
 
-        public static mbConfig Read(string path)
+		public static MBConfig Read(string path)
         {
             if (!File.Exists(path))
-                return new mbConfig();
+				return new MBConfig();
             using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
                 return Read(fs);
             }
         }
 
-        public static mbConfig Read(Stream stream)
+		public static MBConfig Read(Stream stream)
         {
             using (var sr = new StreamReader(stream))
             {
-                var cf = JsonConvert.DeserializeObject<mbConfig>(sr.ReadToEnd());
+				var cf = JsonConvert.DeserializeObject<MBConfig>(sr.ReadToEnd());
                 if (ConfigRead != null)
                     ConfigRead(cf);
                 return cf;
@@ -72,6 +68,6 @@ namespace MultiBuff
             }
         }
 
-        public static Action<mbConfig> ConfigRead;
+		public static Action<MBConfig> ConfigRead;
     }
 }
