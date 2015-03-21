@@ -191,8 +191,8 @@ namespace MultiBuff
                     addedBuffs.Add(TShock.Utils.GetBuffName(id));
                 }
             }
-            args.Player.SendSuccessMessage("You have buffed yourself with {0}!", 
-                String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
+            args.Player.SendSuccessMessage("You have buffed yourself with {0}!",
+				String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + (addedBuffs.Count > 1 ? ", and " : "") + addedBuffs.LastOrDefault());
         }
         #endregion;
 
@@ -265,11 +265,11 @@ namespace MultiBuff
                         addedBuffs.Add(TShock.Utils.GetBuffName(id));
                     }
                 }
-                args.Player.SendSuccessMessage("You have buffed {0} with {1}!", foundplr[0].Name, 
-                            String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
+                args.Player.SendSuccessMessage("You have buffed {0} with {1}!", foundplr[0].Name,
+							String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + (addedBuffs.Count > 1 ? ", and " : "") + addedBuffs.LastOrDefault());
                 foundplr[0].SendSuccessMessage("{0} buffed you with {1}!",
-                    args.Player.Name, 
-                    String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
+                    args.Player.Name,
+					String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + (addedBuffs.Count > 1 ? ", and " : "") + addedBuffs.LastOrDefault());
             }
         }
         #endregion;
@@ -325,15 +325,15 @@ namespace MultiBuff
                 }
                 else
                 {
-					foreach (TSPlayer player in TShock.Players)
+					foreach (TSPlayer player in TShock.Players.Where(p => p != null && p.Active))
                     {
 						player.SetBuff(id, 60 * time);
                     }
                     addedBuffs.Add(TShock.Utils.GetBuffName(id));
                 }
             }
-            TSPlayer.All.SendInfoMessage("{0} buffed everyone with {1}!", args.Player.Name, 
-                String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + ", and " + addedBuffs.LastOrDefault());
+            TSPlayer.All.SendInfoMessage("{0} buffed everyone with {1}!", args.Player.Name,
+				String.Join(", ", addedBuffs.ToArray(), 0, addedBuffs.Count - 1) + (addedBuffs.Count > 1 ? ", and " : "") + addedBuffs.LastOrDefault());
         }
         #endregion;
 
@@ -474,12 +474,12 @@ namespace MultiBuff
             {
                 foreach (int buff in pair.Buffs)
                 {
-					foreach (TSPlayer player in TShock.Players)
+					foreach (TSPlayer player in TShock.Players.Where(p => p != null && p.Active))
                     {
                         player.SetBuff(buff, 60 * ((time == 0) ? pair.Time : time));
                     }
                 }
-                TSPlayer.All.SendSuccessMessage("{0} buffed everyone with the {1} set!",
+                TSPlayer.All.SendInfoMessage("{0} buffed everyone with the {1} set!",
                     args.Player.Name, args.Parameters[0]);
             }
             else
